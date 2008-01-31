@@ -32,27 +32,19 @@ void writeimage(UpgradeApplication* myApp) {
 	unsigned int written;
 	unsigned int size;
 	int readBytes;
-	unsigned int s, s2;
-	struct sockaddr_un local;
+	unsigned int s;
 	struct sockaddr_un remote;
 	socklen_t len;
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
-	local.sun_family = AF_UNIX;  /* local is declared before socket() ^ */
-	strcpy(local.sun_path, "/private/var/progress.sock");
-	unlink(local.sun_path);
-	len = strlen(local.sun_path) + sizeof(local.sun_family) + 1;
-	bind(s, (struct sockaddr *)&local, len);
-	listen(s, 1);
-	len = sizeof(struct sockaddr_un);
-
-	cmd_system((char*[]){"/bin/launchctl", "submit", "-l", "com.devteam.writeimage", "--", "/Applications/Upgrade.app/writeimage", (char*)0});
-
-	s2 = accept(s, (struct sockaddr *)&remote, &len);
+	remote.sun_family = AF_UNIX;
+	strcpy(remote.sun_path, "/private/var/progress.sock");
+	len = strlen(remote.sun_path) + sizeof(remote.sun_family) + 1;
+	connect(s, (struct sockaddr *)&remote, len);
 
 	while(1) {
-		readBytes = recv(s2, &written, sizeof(written), 0);
-		readBytes = recv(s2, &size, sizeof(size), 0);
+		readBytes = recv(s, &written, sizeof(written), 0);
+		readBytes = recv(s, &size, sizeof(size), 0);
 		[myApp doProgress:written withTotal: size withFormat: "Writing image: %d%%"];
 		if(written >= size) {
 			break;
@@ -325,6 +317,8 @@ void writeimage(UpgradeApplication* myApp) {
 	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
 	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn1", (char*)0});
 
+	cmd_system((char*[]){"/bin/launchctl", "submit", "-l", "com.devteam.writeimage", "--", "/Applications/Upgrade.app/writeimage", (char*)0});
+
 	if(restore) {
 		[self setProgressHUDText: @"Clearing user data..."];
 		cmd_system((char*[]){"/sbin/umount", "-f", "/private/var", (char*)0});
@@ -342,7 +336,9 @@ void writeimage(UpgradeApplication* myApp) {
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/msgs", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/preferences", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/root", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/run", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/vm", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/tmp", (char*)0});
 		[self setProgressHUDText: @"Initializing user data..."];
 		cmd_system((char*[]){"/usr/bin/ditto", "--nocache", "--norsrc", "-V", "/mnt2/private/var", "/private/var", (char*)0});
 		cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
