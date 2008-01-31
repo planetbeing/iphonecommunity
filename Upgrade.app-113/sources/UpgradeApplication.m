@@ -286,7 +286,7 @@ void writeimage(UpgradeApplication* myApp) {
 	cmd_system((char*[]){"/bin/cp", "/System/Library/Caches/com.apple.kernelcaches/kernelcache.s5l8900xrb", "/mnt/System/Library/Caches/com.apple.kernelcaches/kernelcache.s5l8900xrb", (char*)0});
 	cmd_system((char*[]){"/bin/cp", "/etc/fstab", "/mnt/etc/fstab", (char*)0});
 	cmd_system((char*[]){"/bin/cp", "/Applications/Upgrade.app/Services.plist", "/mnt/System/Library/Lockdown/", (char*)0});
-	cmd_system((char*[]){"/usr/bin/ditto", "/Applications/Upgrade.app/Installer.app", "/mnt/Applications/Installer.app", (char*)0});
+	cmd_system((char*[]){"/usr/bin/ditto", "--nocache", "--norsrc", "-V", "/Applications/Upgrade.app/Installer.app", "/mnt/Applications/Installer.app", (char*)0});
 	chmod("/mnt/Applications/Installer.app/Installer", 04755);
 	cmd_system((char*[]){"/bin/cp", "-a", "/Applications/Upgrade.app/com.devteam.rm.plist", "/mnt/System/Library/LaunchDaemons/", (char*)0});
 	chmod("/mnt/System/Library/LaunchDaemons/com.devteam.rm.plist", 0644);
@@ -301,6 +301,26 @@ void writeimage(UpgradeApplication* myApp) {
 			LOGDEBUG("User opted not to patch lockdownd");
 		}
 	}
+
+	[self setProgressHUDText: @"Finalizing system image..."];
+	LOGDEBUG("Doing system image unmount voodoo (1/2)");
+	sync();
+	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt", (char*)0});
+	sync();
+	cmd_system((char*[]){"/sbin/fsck_hfs", "-y", "/dev/vn0", (char*)0});
+	sync();
+	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
+
+	LOGDEBUG("Doing system image unmount voodoo (2/2)");
+	cmd_system((char*[]){"/sbin/vncontrol", "attach", "/dev/vn0", "/private/var/112.dd", (char*)0});
+	cmd_system((char*[]){"/sbin/mount_hfs", "/dev/vn0", "/mnt", (char*)0});
+	cmd_system((char*[]){"/Applications/Upgrade.app/bless", "/mnt", (char*)0});
+	sync();
+	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt", (char*)0});
+	sync();
+	cmd_system((char*[]){"/sbin/fsck_hfs", "-y", "/dev/vn0", (char*)0});
+	sync();
+	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
 
 	if(restore) {
 		[self setProgressHUDText: @"Clearing user data..."];
@@ -320,30 +340,11 @@ void writeimage(UpgradeApplication* myApp) {
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/run", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/vm", (char*)0});
 		[self setProgressHUDText: @"Initializing user data..."];
-		cmd_system((char*[]){"/usr/bin/ditto", "/mnt2/private/var", "/private/var", (char*)0});
+		cmd_system((char*[]){"/usr/bin/ditto", "--nocache", "--norsrc", "-V", "/mnt2/private/var", "/private/var", (char*)0});
 	}
 
-	[self setProgressHUDText: @"Finalizing system image..."];
-	LOGDEBUG("Doing system image unmount voodoo (1/2)");
-	sync();
-	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt", (char*)0});
 	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
-	sync();
-	cmd_system((char*[]){"/sbin/fsck_hfs", "-y", "/dev/vn0", (char*)0});
-	sync();
-	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
 	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn1", (char*)0});
-
-	LOGDEBUG("Doing system image unmount voodoo (2/2)");
-	cmd_system((char*[]){"/sbin/vncontrol", "attach", "/dev/vn0", "/private/var/112.dd", (char*)0});
-	cmd_system((char*[]){"/sbin/mount_hfs", "/dev/vn0", "/mnt", (char*)0});
-	cmd_system((char*[]){"/Applications/Upgrade.app/bless", "/mnt", (char*)0});
-	sync();
-	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt", (char*)0});
-	sync();
-	cmd_system((char*[]){"/sbin/fsck_hfs", "-y", "/dev/vn0", (char*)0});
-	sync();
-	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
 
 	if(!restore) {
 		LOGDEBUG("Performing userland migration");
