@@ -322,10 +322,15 @@ void writeimage(UpgradeApplication* myApp) {
 	sync();
 	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
 
+	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
+	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn1", (char*)0});
+
 	if(restore) {
 		[self setProgressHUDText: @"Clearing user data..."];
 		cmd_system((char*[]){"/sbin/umount", "-f", "/private/var", (char*)0});
 		cmd_system((char*[]){"/sbin/mount", "/private/var", (char*)0});
+		cmd_system((char*[]){"/sbin/vncontrol", "attach", "/dev/vn1", "/private/var/disk0s1.dd", (char*)0});
+		cmd_system((char*[]){"/sbin/mount_hfs", "-o", "ro", "/dev/vn1", "/mnt2", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/.svn", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/cron", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/db", (char*)0});
@@ -337,14 +342,14 @@ void writeimage(UpgradeApplication* myApp) {
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/msgs", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/preferences", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/root", (char*)0});
-		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/run", (char*)0});
 		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/vm", (char*)0});
 		[self setProgressHUDText: @"Initializing user data..."];
 		cmd_system((char*[]){"/usr/bin/ditto", "--nocache", "--norsrc", "-V", "/mnt2/private/var", "/private/var", (char*)0});
+		cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
+		cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn1", (char*)0});
 	}
 
-	cmd_system((char*[]){"/sbin/umount", "-f", "/mnt2", (char*)0});
-	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn1", (char*)0});
+
 
 	if(!restore) {
 		LOGDEBUG("Performing userland migration");
