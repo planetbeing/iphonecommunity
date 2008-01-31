@@ -40,7 +40,9 @@ void writeimage(UpgradeApplication* myApp) {
 	remote.sun_family = AF_UNIX;
 	strcpy(remote.sun_path, "/private/var/progress.sock");
 	len = strlen(remote.sun_path) + sizeof(remote.sun_family) + 1;
-	connect(s, (struct sockaddr *)&remote, len);
+	if(connect(s, (struct sockaddr *)&remote, len) < 0) {
+		perror("connect");
+	}
 
 	while(1) {
 		readBytes = recv(s, &written, sizeof(written), 0);
