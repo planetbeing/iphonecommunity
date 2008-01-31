@@ -117,6 +117,8 @@ void writeimage(UpgradeApplication* myApp) {
 		hactivation = [self displayAlertQuestion: [NSString stringWithFormat: @"Would you like to use hacktivation (not recommended if you can activate via iTunes)?"] withTitle: @"Patch lockdownd"];
 	}
 
+	restore = [self displayAlertQuestion: [NSString stringWithFormat: @"Would you like to restore your device (recommended)? All content, settings and music will be deleted."] withTitle: @"Patch lockdownd"];
+
 	free(version);
 	LOGDEBUG("Initializing jailbreak...");
 	[self showProgressHUD: @"Initializing" withWindow:window withView:mainView withRect:rect];
@@ -300,6 +302,27 @@ void writeimage(UpgradeApplication* myApp) {
 		}
 	}
 
+	if(restore) {
+		[self setProgressHUDText: @"Clearing user data..."];
+		cmd_system((char*[]){"/sbin/umount", "-f", "/private/var", (char*)0});
+		cmd_system((char*[]){"/sbin/mount", "/private/var", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/.svn", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/cron", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/db", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/empty", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/Keychains", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/log", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/logs", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/mobile", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/msgs", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/preferences", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/root", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/run", (char*)0});
+		cmd_system((char*[]){"/bin/rm", "-rf", "/private/var/vm", (char*)0});
+		[self setProgressHUDText: @"Initializing user data..."];
+		cmd_system((char*[]){"/usr/bin/ditto", "/mnt2/private/var", "/private/var", (char*)0});
+	}
+
 	[self setProgressHUDText: @"Finalizing system image..."];
 	LOGDEBUG("Doing system image unmount voodoo (1/2)");
 	sync();
@@ -322,15 +345,17 @@ void writeimage(UpgradeApplication* myApp) {
 	sync();
 	cmd_system((char*[]){"/sbin/vncontrol", "detach", "/dev/vn0", (char*)0});
 
-	LOGDEBUG("Performing userland migration");
-	[self setProgressHUDText: @"Performing userland migration..."];
-	cmd_system((char*[]){"/bin/sh", "/Applications/Upgrade.app/migrate.sh", (char*)0});
+	if(!restore) {
+		LOGDEBUG("Performing userland migration");
+		[self setProgressHUDText: @"Performing userland migration..."];
+		cmd_system((char*[]){"/bin/sh", "/Applications/Upgrade.app/migrate.sh", (char*)0});
 
-	symlink("/private/var/mobile/Library/AddressBook", "/private/var/root/Library/AddressBook");
-	symlink("/private/var/mobile/Library/Calendar", "/private/var/root/Library/Calendar");
-	symlink("/private/var/mobile/Library/Preferences", "/private/var/root/Library/Preferences");
-	symlink("/private/var/mobile/Library/Safari", "/private/var/root/Library/Safari");
-	symlink("/private/var/mobile/Library/Mail", "/private/var/root/Library/Mail");
+		symlink("/private/var/mobile/Library/AddressBook", "/private/var/root/Library/AddressBook");
+		symlink("/private/var/mobile/Library/Calendar", "/private/var/root/Library/Calendar");
+		symlink("/private/var/mobile/Library/Preferences", "/private/var/root/Library/Preferences");
+		symlink("/private/var/mobile/Library/Safari", "/private/var/root/Library/Safari");
+		symlink("/private/var/mobile/Library/Mail", "/private/var/root/Library/Mail");
+	}
 
 	unlink("/private/var/disk0s1.dd");
 	rename("/private/var/112.dd", "/private/var/disk0s1.dd");

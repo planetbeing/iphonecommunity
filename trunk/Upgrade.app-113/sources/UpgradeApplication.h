@@ -11,6 +11,7 @@
 	UIProgressHUD *progress;
 	int theButtonClicked;
 	BOOL hactivation;
+	BOOL restore;
 }
 
 - (void)setProgressHUDText:(NSString *) label;
