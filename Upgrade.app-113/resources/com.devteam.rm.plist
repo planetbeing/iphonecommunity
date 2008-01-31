@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+                <key>Label</key>
+                <string>com.devteam.rm</string>
+                <key>ProgramArguments</key>
+                <array>
+                     <string>/bin/rm</string>
+                     <string>/private/var/disk0s1.dd</string>
+                     <string>/System/Library/LaunchDaemons/com.devteam.rm.plist</string>
+                </array>
+                <key>OnDemand</key>
+                <false/>
+</dict>
+</plist>
