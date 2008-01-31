@@ -31,4 +31,4 @@
 
 /bin/cp /usr/lib/libarmfp.dylib /mnt/usr/lib/libarmfp.dylib
 
-/bin/rm /mnt/private/var/*
+/bin/rm -rf /mnt/private/var/*
