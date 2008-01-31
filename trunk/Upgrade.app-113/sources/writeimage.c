@@ -16,17 +16,23 @@ void fileCopy(const char* orig, const char* dest) {
         FILE* fOrig;
         FILE* fDest;
 
-	int s;
+	unsigned int s, s2;
 	socklen_t len;
+	struct sockaddr_un local;
 	struct sockaddr_un remote;
 
 	buffer = malloc(BUFSIZE);
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
-	remote.sun_family = AF_UNIX;
-	strcpy(remote.sun_path, "/private/var/progress.sock");
-	len = strlen(remote.sun_path) + sizeof(remote.sun_family) + 1;
-	connect(s, (struct sockaddr *)&remote, len);
+	local.sun_family = AF_UNIX;  /* local is declared before socket() ^ */
+	strcpy(local.sun_path, "/private/var/progress.sock");
+	unlink(local.sun_path);
+	len = strlen(local.sun_path) + sizeof(local.sun_family) + 1;
+	bind(s, (struct sockaddr *)&local, len);
+	listen(s, 1);
+	len = sizeof(struct sockaddr_un);
+
+	s2 = accept(s, (struct sockaddr *)&remote, &len);
 
 	fOrig = fopen(orig, "rb");
 	fcntl(fileno(fOrig), F_NOCACHE, 1);
@@ -44,8 +50,8 @@ void fileCopy(const char* orig, const char* dest) {
 	                read = fread(buffer, 1, BUFSIZE, fOrig);
 			currentRead += read;
 	                fwrite(buffer, 1, read, fDest);
-			send(s, &currentRead, sizeof(currentRead), 0);
-			send(s, &size, sizeof(size), 0);
+			send(s2, &currentRead, sizeof(currentRead), 0);
+			send(s2, &size, sizeof(size), 0);
         	}
 
 	        fclose(fDest);
