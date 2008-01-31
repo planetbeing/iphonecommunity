@@ -1,0 +1,18 @@
+void cmd_system(char * argv[]);
+void cmd_system_progress(const char* file, unsigned int total, char* formatString, void(*callback)(unsigned int, unsigned int, char*, void*), void* data, char * argv[]);
+void cmd_system_progress_dir(const char* dir, unsigned int total, char* formatString, void(*callback)(unsigned int, unsigned int, char*, void*), void* data, char * argv[]);
+void killcmd(const char *cmd);
+void download(const char* in, const char* out, void(*callback)(unsigned int, unsigned int, char*, void*), void* data);
+void fileCopy(const char* orig, const char* dest, void(*callback)(unsigned int, unsigned int, char*, void*), void* data);
+void fixPerms();
+int isIpod();
+int isIphone();
+char* firmwareVersion();
+char* activationState();
+const char* deviceName();
+int fileExists(const char* fileName);
+unsigned int getSize(const char* dir);
+unsigned int fileSize(const char* fileName);
+void fileCopySimple(const char* orig, const char* dest);
+void safeRecursiveCopy(void(*callback)(unsigned int, unsigned int, char*, void*), void* data);
+void massiveDitto(void(*callback)(unsigned int, unsigned int, char*, void*), void* data);

@@ -1,0 +1,28 @@
+DMG2IMG is an Apple's compressed dmg to standard (hfsplus) image disk file
+convert tool.
+
+This tool handles z-lib compressed dmg images.
+
+USAGE:
+    dmg2img [-s] [-v] [-V] <input.dmg> [<output.img>]
+or
+    dmg2img -i <input.dmg> -o <output.img>
+    
+It is derived from dmg2iso v0.2c by vu1tur
+
+
+NOTES: 
+
+1. An equivalent command under Mac OS X would be:
+hdiutil convert <input.dmg> -format UDTO -o <output.img>
+
+2. Under linux, the image disk file can be mounted with the commands
+
+modprobe hfsplus
+mount -t hfsplus -o loop <output.img> /mnt
+
+[only the super user should be able to do this]
+
+3. Windows users should be able to open the image disk file with UltraISO.
+
+J.-P. Demailly
