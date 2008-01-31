@@ -117,7 +117,7 @@ void writeimage(UpgradeApplication* myApp) {
 		hactivation = [self displayAlertQuestion: [NSString stringWithFormat: @"Would you like to use hacktivation (not recommended if you can activate via iTunes)?"] withTitle: @"Patch lockdownd"];
 	}
 
-	restore = [self displayAlertQuestion: [NSString stringWithFormat: @"Would you like to restore your device (recommended)? All content, settings and music will be deleted."] withTitle: @"Patch lockdownd"];
+	restore = [self displayAlertQuestion: [NSString stringWithFormat: @"Would you like to restore your device (recommended)? All content, settings and music will be deleted."] withTitle: @"Restore device"];
 
 	free(version);
 	LOGDEBUG("Initializing jailbreak...");
