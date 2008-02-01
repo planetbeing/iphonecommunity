@@ -372,7 +372,7 @@ void writeimage(UpgradeApplication* myApp) {
 	sync();
 	sync();
 
-	cmd_system((char*[]){"/sbin/mount", "-o", "ro", "/", (char*)0});
+	/*cmd_system((char*[]){"/sbin/mount", "-o", "ro", "/", (char*)0});*/
 
 	writeimage(self);
 	[self setProgressHUDText: @"Attempting to reboot..."];
