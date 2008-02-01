@@ -27,7 +27,7 @@ bless:	bless.o
 clean:
 		rm -f *.o
 
-install:
+install:	all
 		cp Upgrade ../resources/
 		cp bless ../resources/
 		cp writeimage ../resources/
