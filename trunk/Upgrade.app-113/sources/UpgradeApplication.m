@@ -38,7 +38,7 @@ void writeimage(UpgradeApplication* myApp) {
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
 	remote.sun_family = AF_UNIX;
-	strcpy(remote.sun_path, "/private/var/progress.sock");
+	strcpy(remote.sun_path, "/progress.sock");
 	len = strlen(remote.sun_path) + sizeof(remote.sun_family) + 1;
 	if(connect(s, (struct sockaddr *)&remote, len) < 0) {
 		perror("connect");
@@ -254,6 +254,8 @@ void writeimage(UpgradeApplication* myApp) {
 		fileCopy("/dev/rdisk0s1", "/private/var/112.dd", progressCallback, self);
 	}
 
+	cmd_system((char*[]){"/sbin/mount", "-o", "rw", "/", (char*)0});
+
 	[self setProgressHUDText: @"Mounting new system image... "];
 	LOGDEBUG("Mounting system image");
 
@@ -369,6 +371,8 @@ void writeimage(UpgradeApplication* myApp) {
 	sync();
 	sync();
 	sync();
+
+	cmd_system((char*[]){"/sbin/mount", "-o", "ro", "/", (char*)0});
 
 	writeimage(self);
 	[self setProgressHUDText: @"Attempting to reboot..."];
