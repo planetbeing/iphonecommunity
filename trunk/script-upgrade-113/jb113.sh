@@ -83,7 +83,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
-echo "***"; echo "*** ditto restore.zip file (~2 minutes)"
+echo "***"; echo "*** ditto restore.zip file (~12.5 minutes left)"
 ditto -kx /private/var/restore.zip /private/var/x/ > /dev/null
 if [ $? -ne 0 ]; then
   echo
@@ -95,7 +95,7 @@ fi
 rm -f /private/var/restore.zip
 
 
-echo "***"; echo "*** vfdecrypt iPod (~2.5 minutes)"
+echo "***"; echo "*** vfdecrypt iPod (~10 minutes left)"
 /vfdecrypt -i ${DMG} -k ${KEY} -o /private/var/decrypted.dmg > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo
@@ -107,7 +107,7 @@ fi
 rm -rf /private/var/x
 
 
-echo "***"; echo "*** dmg2img (~3 minutes)"; echo "***"
+echo "***"; echo "*** dmg2img (~8 minutes left)"; echo "***"
 /dmg2img -v /private/var/decrypted.dmg /private/var/disk0s1.dd > /dev/null
 if [ $? -ne 0 ]; then
   echo
@@ -129,7 +129,7 @@ fi
 ###| Let's start the work
 ##/
 
-echo "***"; echo "*** The hard work starts here (~2 minute)"; echo
+echo "***"; echo "*** The hard work starts here (~5 minutes left)"; echo
 # remount
 umount -f /private/var ; mount /private/var
 
@@ -217,7 +217,7 @@ sync
 sync
 sync
 
-echo "***"; echo "*** Copying image to raw device (~3 minutes left)"
+echo "***"; echo "*** Copying image to raw device (~3 minutes left to freedom)"
 cp /private/var/disk0s1.dd /dev/rdisk0s1
 echo "***"; echo "*** Done."; echo "***"
 echo "*** Sending reboot command, should take a few seconds"; sleep 1
