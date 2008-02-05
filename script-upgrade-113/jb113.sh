@@ -2,7 +2,7 @@
 #
 # Script for soft upgrade & jb from 112 to 113
 #
-# Author planetbeing, iphone dev team
+# Author planetbeing
 #
 # Mods by The Smuggler ( alive since Apple ][+ 1981 and beyong )
 #   * added freespace check & more
@@ -58,7 +58,7 @@ echo "WARNING: MAKE SURE YOUR SETTING IS IN \"AUTO-LOCK = NEVER\""
 echo "WARNING: by pressing RETURN you accept the risk"
 echo
 echo -n ">>> Press RETURN to continue <<<"
-read line
+read line; echo
 
 
 #######################
@@ -85,35 +85,38 @@ fi
 
 echo "***"; echo "*** ditto restore.zip file (~2 minutes)"
 ditto -kx /private/var/restore.zip /private/var/x/ > /dev/null
-rm -f /private/var/restore.zip
 if [ $? -ne 0 ]; then
   echo
   echo "ERROR: ditto can't unzip /private/var/restore.zip"
+  [ -f /private/var/restore.zip ] && rm -f /private/var/restore.zip
   [ -d /private/var/x ] && rm -rf /private/var/x
   exit 1
 fi
+rm -f /private/var/restore.zip
 
 
 echo "***"; echo "*** vfdecrypt iPod (~2.5 minutes)"
 /vfdecrypt -i ${DMG} -k ${KEY} -o /private/var/decrypted.dmg > /dev/null 2>&1
-rm -rf /private/var/x
 if [ $? -ne 0 ]; then
   echo
   echo "ERROR: vfdecrypt encountered an error"
   [ -f /private/var/decrypted.dmg ] && rm -f /private/var/decrypted.dmg
+  [ -d /private/var/x ] && rm -rf /private/var/x
   exit 1
 fi
+rm -rf /private/var/x
 
 
 echo "***"; echo "*** dmg2img (~3 minutes)"; echo "***"
 /dmg2img -v /private/var/decrypted.dmg /private/var/disk0s1.dd > /dev/null
-rm -f /private/var/decrypted.dmg
 if [ $? -ne 0 ]; then
   echo
   echo "ERROR: dmg2img can't convert file"
   [ -f /private/var/disk0s1.dd ] && rm -f /private/var/disk0s1.dd
+  [ -f /private/var/decrypted.dmg ] && rm -f /private/var/decrypted.dmg
   exit 1
 fi
+rm -f /private/var/decrypted.dmg
 # make sure the file is indeed there before we start!
 if [ ! -f "/private/var/disk0s1.dd" ]; then
   echo "ERROR: /private/var/disk0s1.dd file not found..."
@@ -126,7 +129,7 @@ fi
 ###| Let's start the work
 ##/
 
-echo "***"; echo "The hard work starts here (~1 minute)"; echo
+echo "***"; echo "*** The hard work starts here (~2 minute)"; echo
 # remount
 umount -f /private/var ; mount /private/var
 
@@ -156,9 +159,9 @@ cp /Services.plist /mnt/System/Library/Lockdown/
 cp /usr/lib/libarmfp.dylib /mnt/usr/lib/libarmfp.dylib
 cp /Library/LaunchDaemons/* /mnt/Library/LaunchDaemons/
 
-chown root:wheel /Applications/Installer.app/Installer
-chmod +s /Applications/Installer.app/Installer
 cp -a /Applications/Installer.app /mnt/Applications/
+chown root:wheel /mnt/Applications/Installer.app/Installer
+chmod +s /mnt/Applications/Installer.app/Installer
 
 cp -a /com.devteam.rm.plist /mnt/System/Library/LaunchDaemons/
 ln -s /private/var/terminfo /mnt/usr/share/terminfo
@@ -217,5 +220,5 @@ sync
 echo "***"; echo "*** Copying image to raw device (~3 minutes left)"
 cp /private/var/disk0s1.dd /dev/rdisk0s1
 echo "***"; echo "*** Done."; echo "***"
-echo -n "*** Sending reboot command, should take a few seconds"; sleep 1
+echo "*** Sending reboot command, should take a few seconds"; sleep 1
 reboot
